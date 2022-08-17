@@ -41,17 +41,15 @@ jobs:
       - run:
           name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
           command: |
-            aws cloudformation \
-            list-exports --query "Exports[?Name==\`mybucket-${CIRCLE_WORKFLOW_ID:0:7}\`].Value" \
-            --no-paginate --output text > /workspace/stack_id.txt
+            aws s3 ls | grep mybucket-${CIRCLE_WORKFLOW_ID:0:7} > /workspace/bucket_name.txt
 
       - persist_to_workspace:
           root: /workspace
           paths: 
-            - stack_id.txt
+            - bucket_name.txt
       - run:
           name: cat file
-          command: cat /workspace/stack_id.txt
+          command: cat /workspace/bucket_name.txt
 
 workflows:
   my_workflow:
