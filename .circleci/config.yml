@@ -64,11 +64,15 @@ jobs:
     steps:
       - checkout
 
-      - run: echo $OldBucketID
+      - run: yum install -y tar gzip
+
+      - attach_workspace:
+          at: /workspace
 
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack. 
           command: |
+            export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)
             if [ -z "$OldBucketID" ] ; \
             then \
               echo "Skip because OldBucketID is null" ;\
@@ -80,14 +84,14 @@ jobs:
       - run:
           name: Delete old S3 bucket     
           command: |
+            export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)
             if [ -z "$OldBucketID" ] ; \
             then \
               echo "Skip because OldBucketID is null" ;\
             else \
-              aws s3api delete-bucket --bucket OldBucketID ;\
-            fi
-            echo $OldBucketID
-            
+              aws s3api delete-bucket --bucket $OldBucketID ;\
+
+
 workflows:
   my_workflow:
     jobs:
@@ -102,16 +106,3 @@ workflows:
           requires:
             - promote_to_production
             - get_last_deployment_id
-          pre-steps:
-            - run: yum install -y tar gzip
-
-            - attach_workspace:
-                at: /workspace
-
-            - run: cat /workspace/old_bucket.txt
-
-            - run:
-                name: Export old bucket name
-                command: |
-                  export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)
-                  echo $OldBucketID
