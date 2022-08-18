@@ -63,7 +63,9 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-          
+
+      - run: echo $OldBucketID
+
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack. 
           command: |
@@ -73,6 +75,7 @@ jobs:
             else \
               aws s3 rm "s3://${OldBucketID}" --recursive ; \
             fi
+            echo $OldBucketID
 
       - run:
           name: Delete old S3 bucket     
@@ -83,7 +86,8 @@ jobs:
             else \
               aws s3api delete-bucket --bucket OldBucketID ;\
             fi
-
+            echo $OldBucketID
+            
 workflows:
   my_workflow:
     jobs:
@@ -103,8 +107,11 @@ workflows:
 
             - attach_workspace:
                 at: /workspace
-            
+
+            - run: cat /workspace/old_bucket.txt
+
             - run:
                 name: Export old bucket name
                 command: |
-                  export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)                  
+                  export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)
+                  echo $OldBucketID
