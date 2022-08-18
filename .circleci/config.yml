@@ -84,7 +84,9 @@ jobs:
       - run:
           name: Destroy CloudFormation Stack
           command: |
+            export OldBucketName=$(awk -F' ' '{print $3}' < /workspace/old_bucket_name)
             export OldStackID=${OldBucketName#"mybucket-"}
+            
             if [ -z "$OldStackID" ] ; \
             then \
               echo "Skip because OldStackID is null" ;\
