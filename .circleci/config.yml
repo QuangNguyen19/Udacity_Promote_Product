@@ -39,20 +39,12 @@ jobs:
       - run: yum install -y tar gzip
 
       - run:  
-          name: Get all bucket name Sort according to the creation date 
+          name: Get all bucket , sort according to the creation date , get the oldest bucket name
           command: |
             aws s3 ls | grep "mybucket-*" > /tmp/all_bucket.txt 
+            sort -k 2 /tmp/all_bucket.txt - o /tmp/all_bucket.txt
+            sed -n '1p' /tmp/all_bucket.txt > /workspace/old_bucket.txt; 
 
-      - run:
-          name: Sort according to the creation date 
-          command: |
-            sort -k 2 /tmp/all_bucket.txt - o /tmp/all_bucket.txt 
-
-      - run:
-          name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
-          command: |
-            sed -n '1p' tmp/all_bucket.txt > /workspace/old_bucket.txt; \
-          
       - persist_to_workspace:
           root: /workspace
           paths: 
