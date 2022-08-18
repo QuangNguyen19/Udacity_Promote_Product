@@ -47,9 +47,9 @@ jobs:
       - run:
           name: Check if there are new bucket for production or not      
           command: |
-            if [ $(wc -l < all_bucket.txt)  == 2 ]; \
+            if [ $(wc -l < all_bucket.txt)  == 2 ] ; \
             then \
-              sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt; \
+              sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt ; \
             fi
 
       - persist_to_workspace:
@@ -66,17 +66,17 @@ jobs:
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack. 
           command: |
-            if [ -z "$OldBucketID" ]; \
+            if [ -z "$OldBucketID" ] ; \
             then \
-            aws s3 rm "s3://${OldBucketID}" --recursive; \
+              aws s3 rm "s3://${OldBucketID}" --recursive ; \
             fi
 
       - run:
           name: Delete old S3 bucket     
           command: |
-            if [ -z "$OldBucketID" ]; \
+            if [ -z "$OldBucketID" ] ; \
             then \
-            aws s3api delete-bucket --bucket OldBucketID;\
+              aws s3api delete-bucket --bucket OldBucketID ;\
             fi
 
 workflows:
