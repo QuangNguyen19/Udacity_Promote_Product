@@ -43,20 +43,20 @@ jobs:
           command: |
             aws s3 ls | grep "mybucket-*" > all_bucket.txt 
             sort -k 2 all_bucket.txt -o all_bucket.txt
-            touch /workspace/old_stack_id.txt
+            touch /workspace/old_bucket_name
 
       - run:
           name: check if there is new bucket for promote to production
           command: |
             if [[ $(wc -l < all_bucket.txt) == 2 ]]; \
             then \
-              sed -n '1p' all_bucket.txt > /workspace/old_stack_id.txt ; \
+              sed -n '1p' all_bucket.txt > /workspace/old_bucket_name ; \
             fi
 
       - persist_to_workspace:
           root: /workspace
           paths: 
-            - old_stack_id.txt
+            - old_bucket_name
 
   clean_up:
     docker:
@@ -72,16 +72,17 @@ jobs:
       - run:
           name: Destroy the previous S3 bucket CloudFormation stack. 
           command: |
-            export OldStackID=$(awk -F' ' '{print $3}' < /workspace/old_stack_id.txt)
+            export OldBucketName=$(awk -F' ' '{print $3}' < /workspace/old_bucket_name)
             
-            if [ -z "$OldStackID" ] ; \
+            if [ -z "$OldBucketName" ] ; \
             then \
-              echo "Skip because OldStackID is null" ;\
+              echo "Skip because OldBucketName is null" ;\
             else \
-              aws s3 rm "s3://${OldStackID}" --recursive ; \
+              aws s3 rm "s3://${OldBucketName}" --recursive ; \
             fi
-
-            aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID}
+      - run:
+          export OldStackID=${OldBucketName#"mybucket-"}
+          aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID}
 
 workflows:
   my_workflow:
