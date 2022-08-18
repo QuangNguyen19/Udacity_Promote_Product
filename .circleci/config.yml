@@ -51,12 +51,8 @@ jobs:
       - run:
           name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
           command: |
-            if [ $(wc -l < all_bucket.txt)  == 2 ]; \
             sed -n '1p' tmp/all_bucket.txt > /workspace/old_bucket.txt; \
-            fi
           
-
-
       - persist_to_workspace:
           root: /workspace
           paths: 
@@ -71,12 +67,18 @@ jobs:
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack. 
           command: |
-            aws s3 rm "s3://${OldBucketID}" --recursive
+            if [ $(wc -l < all_bucket.txt)  == 2 ]; \
+            then \
+            aws s3 rm "s3://${OldBucketID}" --recursive; \
+            fi
 
       - run:
           name: Delete old S3 bucket     
           command: |
-            aws s3api delete-bucket --bucket OldBucketID
+            if [ $(wc -l < all_bucket.txt)  == 2 ]; \
+            then \
+            aws s3api delete-bucket --bucket OldBucketID;\
+            fi
 
 workflows:
   my_workflow:
