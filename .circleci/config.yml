@@ -47,10 +47,10 @@ jobs:
 
       - run:
           name: check if there is new bucket for promote to production
-          command:
-            if [ $(wc -l all_bucket.txt) == 2 ];\
-            then \ 
-              sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt; \
+          command: |
+            if [[ $(wc -l < all_bucket.txt) == 2 ]]; \
+            then \
+              sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt ; \
             fi
 
       - persist_to_workspace:
