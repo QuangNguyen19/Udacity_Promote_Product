@@ -80,9 +80,15 @@ jobs:
             else \
               aws s3 rm "s3://${OldBucketName}" --recursive ; \
             fi
+            
       - run:
           export OldStackID=${OldBucketName#"mybucket-"}
-          aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID}
+          if [ -z "$OldStackID" ] ; \
+          then \
+            echo "Skip because OldStackID is null" ;\
+          else \
+            aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID} ; \
+          fi      
 
 workflows:
   my_workflow:
