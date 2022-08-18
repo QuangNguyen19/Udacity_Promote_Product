@@ -43,12 +43,13 @@ jobs:
           command: |
             aws s3 ls | grep "mybucket-*" > all_bucket.txt 
             sort -k 2 all_bucket.txt -o all_bucket.txt
+            touch /workspace/old_bucket.txt
 
       - run:
-          name: Check if there are new bucket for production or not      
-          command: |
-            if [ $(wc -l < all_bucket.txt)  == 2 ] ; \
-            then \
+          name: check if there is new bucket for promote to production
+          command:
+            if [ $(wc -l all_bucket.txt) == 2 ];\
+            then \ 
               sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt ; \
             fi
 
