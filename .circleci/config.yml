@@ -70,7 +70,7 @@ jobs:
           at: /workspace
 
       - run:
-          name: Destroy the previous S3 bucket CloudFormation stack. 
+          name: Destroy the previous S3 bucket
           command: |
             export OldBucketName=$(awk -F' ' '{print $3}' < /workspace/old_bucket_name)
             
@@ -80,15 +80,17 @@ jobs:
             else \
               aws s3 rm "s3://${OldBucketName}" --recursive ; \
             fi
-            
+
       - run:
-          export OldStackID=${OldBucketName#"mybucket-"}
-          if [ -z "$OldStackID" ] ; \
-          then \
-            echo "Skip because OldStackID is null" ;\
-          else \
-            aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID} ; \
-          fi      
+          name: Destroy CloudFormation Stack
+          command: |
+            export OldStackID=${OldBucketName#"mybucket-"}
+            if [ -z "$OldStackID" ] ; \
+            then \
+              echo "Skip because OldStackID is null" ;\
+            else \
+              aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID} ; \
+            fi      
 
 workflows:
   my_workflow:
