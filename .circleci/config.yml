@@ -41,7 +41,7 @@ jobs:
       - run:  
           name: Get all bucket name Sort according to the creation date 
           command: |
-            aws s3 ls | grep "mybucket-*"> tmp/all_bucket.txt 
+            aws s3 ls | grep "mybucket-*" > tmp/all_bucket.txt 
 
       - run:
           name: Sort according to the creation date 
