@@ -43,20 +43,20 @@ jobs:
           command: |
             aws s3 ls | grep "mybucket-*" > all_bucket.txt 
             sort -k 2 all_bucket.txt -o all_bucket.txt
-            touch /workspace/old_bucket.txt
+            touch /workspace/old_stack_id.txt
 
       - run:
           name: check if there is new bucket for promote to production
           command: |
             if [[ $(wc -l < all_bucket.txt) == 2 ]]; \
             then \
-              sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt ; \
+              sed -n '1p' all_bucket.txt > /workspace/old_stack_id.txt ; \
             fi
 
       - persist_to_workspace:
           root: /workspace
           paths: 
-            - old_bucket.txt
+            - old_stack_id.txt
 
   clean_up:
     docker:
@@ -70,27 +70,18 @@ jobs:
           at: /workspace
 
       - run:
-          name: Destroy the previous S3 bucket and CloudFormation stack. 
+          name: Destroy the previous S3 bucket CloudFormation stack. 
           command: |
-            export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)
-            if [ -z "$OldBucketID" ] ; \
+            export OldStackID=$(awk -F' ' '{print $3}' < /workspace/old_stack_id.txt)
+            
+            if [ -z "$OldStackID" ] ; \
             then \
-              echo "Skip because OldBucketID is null" ;\
+              echo "Skip because OldStackID is null" ;\
             else \
-              aws s3 rm "s3://${OldBucketID}" --recursive ; \
+              aws s3 rm "s3://${OldStackID}" --recursive ; \
             fi
-            echo $OldBucketID
 
-      - run:
-          name: Delete old S3 bucket     
-          command: |
-            export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)
-            if [ -z "$OldBucketID" ] ; \
-            then \
-              echo "Skip because OldBucketID is null" ;\
-            else \
-              aws s3api delete-bucket --bucket $OldBucketID ;\
-
+            aws cloudformation delete-stack --stack-name stack-create-bucket-${OldStackID}
 
 workflows:
   my_workflow:
