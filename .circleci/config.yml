@@ -41,9 +41,9 @@ jobs:
       - run:  
           name: Get all bucket , sort according to the creation date , get the oldest bucket name
           command: |
-            aws s3 ls | grep "mybucket-*" > /tmp/all_bucket.txt 
-            sort -k 2 /tmp/all_bucket.txt - o /tmp/all_bucket.txt
-            sed -n '1p' /tmp/all_bucket.txt > /workspace/old_bucket.txt; 
+            aws s3 ls | grep "mybucket-*" > all_bucket.txt 
+            sort -k 2 all_bucket.txt -o all_bucket.txt
+            sed -n '1p' all_bucket.txt > /workspace/old_bucket.txt; 
 
       - persist_to_workspace:
           root: /workspace
