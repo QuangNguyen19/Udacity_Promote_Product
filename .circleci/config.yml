@@ -37,23 +37,36 @@ jobs:
           command: mkdir -p /workspace
           
       - run: yum install -y tar gzip
+      
+      - run:  
+          name: Get all bucket name Sort according to the creation date 
+          command: |
+            aws s3 ls | grep "mybucket-*"> tmp/all_bucket.txt 
+
+      - run:
+          name: Sort according to the creation date 
+          command: |
+            sort -k 2 tmp/all_bucket.txt - o tmp/all_bucket.txt 
 
       - run:
           name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
           command: |
-            aws s3 ls | grep -Po mybucket-${CIRCLE_WORKFLOW_ID:0:7} > /workspace/latest_bucket_name.txt
+            if [ $(wc -l < all_bucket.txt)  == 2 ]; \
+            sed -n '1p' tmp/all_bucket.txt > /workspace/old_bucket.txt; \
+            fi
+          
+
 
       - persist_to_workspace:
           root: /workspace
           paths: 
-            - latest_bucket_name.txt
+            - old_bucket.txt
 
   clean_up:
     docker:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: yum install -y tar gzip
           
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack. 
@@ -80,10 +93,12 @@ workflows:
             - promote_to_production
             - get_last_deployment_id
           pre-steps:
+            - run: yum install -y tar gzip
+
             - attach_workspace:
                 at: /workspace
             
             - run:
-                name: Export old_stack_id
+                name: Export old bucket name
                 command: |
-                  export OldBucketID=$(cat /workspace/latest_bucket_name.txt)                  
+                  export OldBucketID=$(awk -F' ' '{print $3}' < /workspace/old_bucket.txt)                  
