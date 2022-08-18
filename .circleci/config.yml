@@ -12,7 +12,7 @@ jobs:
             --template-file bucket.yml \
             --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
             --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
-      # - run: aws s3 sync . s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude="*" --include="*.html" --delete
+      - run: aws s3 sync . s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7} --exclude="*" --include="*.html" --delete
   
   promote_to_production:
     docker:
@@ -41,15 +41,29 @@ jobs:
       - run:
           name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
           command: |
-            aws s3 ls | grep -Po mybucket-${CIRCLE_WORKFLOW_ID:0:7} > /workspace/bucket_name.txt
+            aws s3 ls | grep -Po mybucket-${CIRCLE_WORKFLOW_ID:0:7} > /workspace/latest_bucket_name.txt
 
       - persist_to_workspace:
           root: /workspace
           paths: 
-            - bucket_name.txt
+            - latest_bucket_name.txt
+
+  clean_up:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+          
       - run:
-          name: cat file
-          command: cat /workspace/bucket_name.txt
+          name: Destroy the previous S3 bucket and CloudFormation stack. 
+          command: |
+            aws s3 rm "s3://${OldBucketID}" --recursive
+
+      - run:
+          name: Delete old S3 bucket     
+          command: |
+            aws s3api delete-bucket --bucket OldBucketID
 
 workflows:
   my_workflow:
@@ -61,3 +75,15 @@ workflows:
       - get_last_deployment_id:
           requires:
             - create_and_deploy_front_end
+      - clean_up:
+          requires:
+            - promote_to_production
+            - get_last_deployment_id
+          pre-steps:
+            - attach_workspace:
+                at: /workspace
+            
+            - run:
+                name: Export old_stack_id
+                command: |
+                  export OldBucketID=$(cat /workspace/latest_bucket_name.txt)                  
