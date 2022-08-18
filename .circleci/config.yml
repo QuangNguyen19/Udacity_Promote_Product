@@ -69,6 +69,8 @@ jobs:
           command: |
             if [ -z "$OldBucketID" ] ; \
             then \
+              echo "Skip because OldBucketID is null" ;\
+            else \
               aws s3 rm "s3://${OldBucketID}" --recursive ; \
             fi
 
@@ -77,6 +79,8 @@ jobs:
           command: |
             if [ -z "$OldBucketID" ] ; \
             then \
+              echo "Skip because OldBucketID is null" ;\
+            else \
               aws s3api delete-bucket --bucket OldBucketID ;\
             fi
 
