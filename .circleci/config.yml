@@ -38,8 +38,6 @@ jobs:
           
       - run: yum install -y tar gzip
 
-      
-
       - run:  
           name: Get all bucket name Sort according to the creation date 
           command: |
@@ -48,9 +46,7 @@ jobs:
       - run:
           name: Sort according to the creation date 
           command: |
-            sort -k 2 tmp/all_bucket.txt - o /tmp/all_bucket.txt 
-
-      - run: mkdir -p /workspace 
+            sort -k 2 /tmp/all_bucket.txt - o /tmp/all_bucket.txt 
 
       - run:
           name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
